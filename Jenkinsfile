@@ -13,13 +13,29 @@ pipeline {
   }
 
   stages {
+
+    stage('Confirm Jenkins User') {
+      steps {
+        powershell 'whoami'
+      }
+    }
+
+    stage('Check NuGet Path') {
+      steps {
+        powershell '''
+          Write-Host "USERPROFILE is $env:USERPROFILE"
+          Get-ChildItem "$env:USERPROFILE\\.nuget\\packages" | Select-Object -First 5
+        '''
+      }
+    }
+
     stage('Pack') {
       steps {
         powershell """
           & \$env:UIPCLI_PATH package pack `
             `"\$env:PROJECT_PATH`" `
             --output `"\$env:OUTPUT_PATH`" `
-            --traceLevel Information 
+            --traceLevel Information
         """
       }
     }
