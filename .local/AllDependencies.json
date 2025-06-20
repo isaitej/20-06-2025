@@ -9056,15 +9056,15 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Saiteja.Indarapu\\.nuget\\packages\\": {}
+    "C:\\WINDOWS\\system32\\config\\systemprofile\\.nuget\\packages\\": {}
   },
   "project": {
     "restore": {
       "projectUniqueName": "20-06-2025",
       "projectName": "20-06-2025",
-      "projectPath": "C:\\Users\\Saiteja.Indarapu\\OneDrive - Elemica, Inc\\Documents\\UiPath\\20-06-2025\\.local",
-      "packagesPath": "C:\\Users\\Saiteja.Indarapu\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Saiteja.Indarapu\\OneDrive - Elemica, Inc\\Documents\\UiPath\\20-06-2025\\.local",
+      "projectPath": "C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\.local",
+      "packagesPath": "C:\\WINDOWS\\system32\\config\\systemprofile\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\.local",
       "UsingMicrosoftNETSdk": false,
       "restoreAuditProperties": {
         "enableAudit": "False"
@@ -9079,7 +9079,7 @@
             "version": "[25.4.4, 25.4.4]"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Users\\Saiteja.Indarapu\\AppData\\Local\\Programs\\UiPath\\Studio\\PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Jenkins\\UiPathCI\\tools\\PortableRuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {

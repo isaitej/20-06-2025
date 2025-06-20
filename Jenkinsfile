@@ -54,4 +54,19 @@ pipeline {
               --clientId `"\$env:APP_ID`" `
               --clientSecret `"\$env:APP_SECRET`" `
               --folder `"\$env:FOLDER_PATH`" `
-              --process `"\$env:PACKAGE
+              --process `"\$env:PACKAGE_NAME`"
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ Build, deploy, and job run successful."
+    }
+    failure {
+      echo "❌ Build failed. See logs above."
+    }
+  }
+}
