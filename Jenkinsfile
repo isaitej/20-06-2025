@@ -19,7 +19,7 @@ pipeline {
           & \$env:UIPCLI_PATH package pack `
             `"\$env:PROJECT_PATH`" `
             --output `"\$env:OUTPUT_PATH`" `
-            --feed "https://www.myget.org/F/workflow/api/v3/index.json"
+            --traceLevel Information 
         """
       }
     }
