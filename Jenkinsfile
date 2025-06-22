@@ -2,17 +2,15 @@ pipeline {
   agent any
 
   environment {
-    PROJECT_NAME = '20-06-2025'
-    PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025'
-    NUGET_OUTPUT_PATH = 'C:\\Jenkins\\UiPathCI\\Output'
-    UIPCLI_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\tools\\uipcli.exe'
-
+    PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\project.json'
+    PACKAGE_OUTPUT = 'C:\\Jenkins\\UiPathPackages'
     ORCH_URL = 'https://cloud.uipath.com/uipatntvskhu/DefaultTenant'
-    TENANT = 'DefaultTenant'
-    ACCOUNT = 'uipatntvskhu'
+    ORCH_TENANT = 'DefaultTenant'
+    ORCH_FOLDER = 'Shared'
+    ORCH_ACCOUNT = 'uipatntvskhu'
     APP_ID = '9765da03-dd43-4915-8847-8fe03d64bfa8'
     APP_SECRET = '%Ab)AJCWq!f3%03v'
-    FOLDER_PATH = 'Shared'
+    PROCESS_NAME = '20-06-2025'
     TEST_SET = 'Testset'
   }
 
@@ -20,53 +18,33 @@ pipeline {
 
     stage('Pack') {
       steps {
-        echo "📦 Packing UiPath project..."
-        powershell """
-          & '${env:UIPCLI_PATH}' package pack '${env:PROJECT_PATH}' `
-            -o '${env:NUGET_OUTPUT_PATH}' `
-            --traceLevel Information
-        """
+        echo '📦 Packing UiPath project...'
+        bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "uipcli package pack \\"%PROJECT_PATH%\\" --autoVersion -o \\"%PACKAGE_OUTPUT%\\" --outputType Process"'
       }
     }
 
     stage('Deploy') {
       steps {
-        echo "🚀 Deploying to Orchestrator..."
-        powershell """
-          & '${env:UIPCLI_PATH}' package push '${env:NUGET_OUTPUT_PATH}\\${env:PROJECT_NAME}.1.0.0.nupkg' `
-            --orchestratorUrl '${env:ORCH_URL}' `
-            --orchestratorTenant '${env:TENANT}' `
-            -A '${env:ACCOUNT}' `
-            -I '${env:APP_ID}' `
-            -S '${env:APP_SECRET}' `
-            --libraryOrchestratorFolder '${env:FOLDER_PATH}'
-        """
+        echo '🚀 Deploying package to Orchestrator...'
+        bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "uipcli deploy process --project-path \\"%PROJECT_PATH%\\" --account-for-app \\"%ORCH_ACCOUNT%\\" --application-id \\"%APP_ID%\\" --application-secret \\"%APP_SECRET%\\" --orchestrator-url \\"%ORCH_URL%\\" --tenant \\"%ORCH_TENANT%\\" --folder \\"%ORCH_FOLDER%\\" --traceLevel Information"'
       }
     }
 
     stage('Run Job') {
       steps {
-        echo "▶️ Running Test Set..."
-        powershell """
-          & '${env:UIPCLI_PATH}' testset run `
-            --orchestratorUrl '${env:ORCH_URL}' `
-            --orchestratorTenant '${env:TENANT}' `
-            -A '${env:ACCOUNT}' `
-            -I '${env:APP_ID}' `
-            -S '${env:APP_SECRET}' `
-            --testset '${env:TEST_SET}' `
-            --folder '${env:FOLDER_PATH}'
-        """
+        echo '▶️ Triggering test set execution...'
+        bat '"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -NoProfile -ExecutionPolicy Bypass -Command "uipcli testset run --testset \\"%TEST_SET%\\" --account-for-app \\"%ORCH_ACCOUNT%\\" --application-id \\"%APP_ID%\\" --application-secret \\"%APP_SECRET%\\" --orchestrator-url \\"%ORCH_URL%\\" --tenant \\"%ORCH_TENANT%\\" --folder \\"%ORCH_FOLDER%\\" --traceLevel Information"'
       }
     }
+
   }
 
   post {
     failure {
-      echo "❌ Build failed. Please check logs above."
+      echo '❌ Build failed. Please check logs above.'
     }
     success {
-      echo "✅ Build and test run completed successfully."
+      echo '✅ Build and test run completed successfully.'
     }
   }
 }
