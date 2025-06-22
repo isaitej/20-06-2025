@@ -3,13 +3,18 @@ pipeline {
 
   environment {
     UIPCLI_PATH = 'C:\\Jenkins\\UiPathCI\\tools\\uipcli.exe'
-    PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025'
-    OUTPUT_PATH = 'C:\\Jenkins\\UiPathCI\\output'
+    PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\project.json'
+    PACKAGE_OUTPUT = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\Packages'
     PACKAGE_NAME = '20-06-2025'
+    PACKAGE_VERSION = '1.0.0'
     ORCH_URL = 'https://cloud.uipath.com/uipatntvskhu/DefaultTenant'
     TENANT = 'DefaultTenant'
-    ACCOUNT_LOGICAL_NAME = 'uipatntvskhu'
-    FOLDER_PATH = 'Shared'
+    ACCOUNT = 'uipatntvskhu'
+    FOLDER = 'Shared'
+    APPLICATION_ID = '9765da03-dd43-4915-8847-8fe03d64bfa8'
+    APPLICATION_SECRET = 'YOUR-APP-SECRET'
+    APP_SCOPE = 'OR.Folders OR.Execution OR.Jobs OR.Machines.Read OR.Robots.Read'
+    PROCESS_NAME = '20-06-2025'
   }
 
   stages {
@@ -22,70 +27,63 @@ pipeline {
 
     stage('Check NuGet Path') {
       steps {
-        powershell '''
-          Write-Host "USERPROFILE is $env:USERPROFILE"
-          Get-ChildItem "$env:USERPROFILE\\.nuget\\packages" | Select-Object -First 5
-        '''
+        powershell 'Write-Host "USERPROFILE is $env:USERPROFILE"; Get-ChildItem "$env:USERPROFILE\\.nuget\\packages"'
       }
     }
 
     stage('Pack') {
       steps {
         powershell """
-          & \$env:UIPCLI_PATH package pack `
-            `"\$env:PROJECT_PATH`" `
-            --output `"\$env:OUTPUT_PATH`" `
-            --traceLevel Information
+          & '${env:UIPCLI_PATH}' package pack "${env:PROJECT_PATH}" `
+          --output "${env:PACKAGE_OUTPUT}" `
+          --version "${env:PACKAGE_VERSION}" `
+          --traceLevel Verbose
         """
       }
     }
 
     stage('Deploy') {
       steps {
-        withCredentials([
-          string(credentialsId: 'uipath-client-id', variable: 'APP_ID'),
-          string(credentialsId: 'uipath-client-secret', variable: 'APP_SECRET')
-        ]) {
-          powershell """
-            & \$env:UIPCLI_PATH package deploy `
-              `"\$env:OUTPUT_PATH\\\$env:PACKAGE_NAME.1.0.0.nupkg`" `
-              --url `"\$env:ORCH_URL`" `
-              --tenant `"\$env:TENANT`" `
-              --accountLogicalName `"\$env:ACCOUNT_LOGICAL_NAME`" `
-              --clientId `"\$env:APP_ID`" `
-              --clientSecret `"\$env:APP_SECRET`"
-          """
-        }
+        powershell """
+          & '${env:UIPCLI_PATH}' package deploy `
+          --package "${env:PACKAGE_OUTPUT}\\${env:PACKAGE_NAME}.${env:PACKAGE_VERSION}.nupkg" `
+          --orchestratorUrl "${env:ORCH_URL}" `
+          --tenant "${env:TENANT}" `
+          --folder "${env:FOLDER}" `
+          --accountForApp "${env:ACCOUNT}" `
+          --applicationId "${env:APPLICATION_ID}" `
+          --applicationSecret "${env:APPLICATION_SECRET}" `
+          --applicationScope "${env:APP_SCOPE}" `
+          --traceLevel Verbose
+        """
       }
     }
 
     stage('Run Job') {
       steps {
-        withCredentials([
-          string(credentialsId: 'uipath-client-id', variable: 'APP_ID'),
-          string(credentialsId: 'uipath-client-secret', variable: 'APP_SECRET')
-        ]) {
-          powershell """
-            & \$env:UIPCLI_PATH job run `
-              --url `"\$env:ORCH_URL`" `
-              --tenant `"\$env:TENANT`" `
-              --accountLogicalName `"\$env:ACCOUNT_LOGICAL_NAME`" `
-              --clientId `"\$env:APP_ID`" `
-              --clientSecret `"\$env:APP_SECRET`" `
-              --folder `"\$env:FOLDER_PATH`" `
-              --process `"\$env:PACKAGE_NAME`"
-          """
-        }
+        powershell """
+          & '${env:UIPCLI_PATH}' job run `
+          --orchestratorUrl "${env:ORCH_URL}" `
+          --tenant "${env:TENANT}" `
+          --folder "${env:FOLDER}" `
+          --accountForApp "${env:ACCOUNT}" `
+          --applicationId "${env:APPLICATION_ID}" `
+          --applicationSecret "${env:APPLICATION_SECRET}" `
+          --applicationScope "${env:APP_SCOPE}" `
+          --process "${env:PROCESS_NAME}" `
+          --traceLevel Verbose
+        """
       }
     }
+
   }
 
   post {
-    success {
-      echo "✅ Build, deploy, and job run successful."
-    }
     failure {
-      echo "❌ Build failed. See logs above."
+      echo "❌ Build failed. Check logs for details."
+    }
+    success {
+      echo "✅ Build and deployment completed successfully!"
     }
   }
 }
