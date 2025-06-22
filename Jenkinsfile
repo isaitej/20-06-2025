@@ -2,13 +2,12 @@ pipeline {
   agent any
 
   environment {
-    // Set paths
     UIPATH_PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\project.json'
     UIPATH_OUTPUT_PATH  = 'C:\\Jenkins\\UiPathCI\\Output'
     UIPATH_TOOL_PATH    = 'C:\\Jenkins\\UiPathCI\\tools\\uipcli.exe'
-    
-    // Fix PATH issue for Jenkins user
-    PATH = "${env.PATH};C:\\Windows\\System32"
+
+    // Make sure dotnet is discoverable
+    PATH = "${env.PATH};C:\\Windows\\System32;C:\\Program Files\\dotnet"
   }
 
   stages {
