@@ -2,16 +2,17 @@ pipeline {
   agent any
 
   environment {
+    // Paths
     UIPATH_PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\project.json'
     UIPATH_OUTPUT_PATH  = 'C:\\Jenkins\\UiPathCI\\Output'
     UIPATH_TOOL_PATH    = 'C:\\Jenkins\\UiPathCI\\tools\\uipcli.exe'
+    DESKTOP_RUNTIME     = 'C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\6.0.36'
 
-    // Make sure dotnet is discoverable
-    PATH = "${env.PATH};C:\\Windows\\System32;C:\\Program Files\\dotnet"
+    // Ensure all runtime DLLs are discoverable
+    PATH = "${env.PATH};C:\\Program Files\\dotnet;${DESKTOP_RUNTIME};C:\\Windows\\System32"
   }
 
   stages {
-
     stage('Pack') {
       steps {
         echo '📦 Packing UiPath project...'
