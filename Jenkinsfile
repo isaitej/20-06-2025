@@ -2,23 +2,22 @@ pipeline {
   agent any
 
   environment {
+    PROJECT_FOLDER = 'Shared'
+    PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025'
     UIPCLI_PATH = 'C:\\Jenkins\\UiPathCI\\tools\\uipcli.exe'
-    PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\project.json'
-    PACKAGE_OUTPUT = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\Packages'
-    PACKAGE_NAME = '20-06-2025'
-    PACKAGE_VERSION = '1.0.0'
+    TOOLS_PLATFORM_PATH = 'C:\\Jenkins\\UiPathCI\\tools\\Platform\\net8.0-windows'
+    OUTPUT_PATH = 'C:\\Jenkins\\UiPathCI\\output'
+
+    ACCOUNT_FOR_APP = 'uipatntvskhu'
+    APPLICATION_ID = '1234abcd-5678-efgh-9012-ijkl3456mnop'
+    APPLICATION_SECRET = 'abcd1234secretvalue5678'
     ORCH_URL = 'https://cloud.uipath.com/uipatntvskhu/DefaultTenant'
-    TENANT = 'DefaultTenant'
-    ACCOUNT = 'uipatntvskhu'
-    FOLDER = 'Shared'
-    APPLICATION_ID = '9765da03-dd43-4915-8847-8fe03d64bfa8'
-    APPLICATION_SECRET = 'YOUR-APP-SECRET'
-    APP_SCOPE = 'OR.Folders OR.Execution OR.Jobs OR.Machines.Read OR.Robots.Read'
-    PROCESS_NAME = '20-06-2025'
+    ORCH_TENANT = 'DefaultTenant'
+    ORCH_FOLDER = 'Shared'
+    TRACE_LEVEL = 'Verbose'
   }
 
   stages {
-
     stage('Confirm Jenkins User') {
       steps {
         powershell 'whoami'
@@ -27,63 +26,32 @@ pipeline {
 
     stage('Check NuGet Path') {
       steps {
-        powershell 'Write-Host "USERPROFILE is $env:USERPROFILE"; Get-ChildItem "$env:USERPROFILE\\.nuget\\packages"'
+        powershell 'Write-Host \"USERPROFILE is $env:USERPROFILE\"; dir "$env:USERPROFILE\.nuget\packages"'
       }
     }
 
     stage('Pack') {
       steps {
-        powershell """
-          & '${env:UIPCLI_PATH}' package pack "${env:PROJECT_PATH}" `
-          --output "${env:PACKAGE_OUTPUT}" `
-          --version "${env:PACKAGE_VERSION}" `
-          --traceLevel Verbose
-        """
+        powershell "\"${env:UIPCLI_PATH}\" package pack \"${env:PROJECT_PATH}\" -o \"${env:OUTPUT_PATH}\" --traceLevel ${env:TRACE_LEVEL} --libraryOrchestratorUrl ${env:ORCH_URL} --libraryOrchestratorTenant ${env:ORCH_TENANT} -A ${env:ACCOUNT_FOR_APP} -I ${env:APPLICATION_ID} -S ${env:APPLICATION_SECRET} --libraryOrchestratorApplicationScope \"OR.Folders OR.BackgroundTasks OR.TestSets OR.TestSetExecutions OR.TestSetSchedules OR.Settings.Read OR.Robots.Read OR.Machines.Read OR.Execution OR.Assets OR.Users.Read OR.Jobs OR.Monitoring\" --libraryOrchestratorFolder ${env:ORCH_FOLDER}"
       }
     }
 
     stage('Deploy') {
       steps {
-        powershell """
-          & '${env:UIPCLI_PATH}' package deploy `
-          --package "${env:PACKAGE_OUTPUT}\\${env:PACKAGE_NAME}.${env:PACKAGE_VERSION}.nupkg" `
-          --orchestratorUrl "${env:ORCH_URL}" `
-          --tenant "${env:TENANT}" `
-          --folder "${env:FOLDER}" `
-          --accountForApp "${env:ACCOUNT}" `
-          --applicationId "${env:APPLICATION_ID}" `
-          --applicationSecret "${env:APPLICATION_SECRET}" `
-          --applicationScope "${env:APP_SCOPE}" `
-          --traceLevel Verbose
-        """
+        powershell "\"${env:UIPCLI_PATH}\" package push \"${env:OUTPUT_PATH}\\20-06-2025.1.0.0.nupkg\" --orchestratorUrl ${env:ORCH_URL} --orchestratorTenant ${env:ORCH_TENANT} -A ${env:ACCOUNT_FOR_APP} -I ${env:APPLICATION_ID} -S ${env:APPLICATION_SECRET} --orchestratorFolder ${env:ORCH_FOLDER}"
       }
     }
 
     stage('Run Job') {
       steps {
-        powershell """
-          & '${env:UIPCLI_PATH}' job run `
-          --orchestratorUrl "${env:ORCH_URL}" `
-          --tenant "${env:TENANT}" `
-          --folder "${env:FOLDER}" `
-          --accountForApp "${env:ACCOUNT}" `
-          --applicationId "${env:APPLICATION_ID}" `
-          --applicationSecret "${env:APPLICATION_SECRET}" `
-          --applicationScope "${env:APP_SCOPE}" `
-          --process "${env:PROCESS_NAME}" `
-          --traceLevel Verbose
-        """
+        powershell "\"${env:UIPCLI_PATH}\" run test --orchestratorUrl ${env:ORCH_URL} --orchestratorTenant ${env:ORCH_TENANT} -A ${env:ACCOUNT_FOR_APP} -I ${env:APPLICATION_ID} -S ${env:APPLICATION_SECRET} --orchestratorFolder ${env:ORCH_FOLDER} --testSetName \"YourTestSetName\""
       }
     }
-
   }
 
   post {
     failure {
-      echo "❌ Build failed. Check logs for details."
-    }
-    success {
-      echo "✅ Build and deployment completed successfully!"
+      echo '❌ Build failed. Check logs for details.'
     }
   }
 }
