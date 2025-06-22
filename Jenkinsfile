@@ -14,8 +14,8 @@ pipeline {
       steps {
         echo '🔄 Copying required .NET Framework DLLs...'
         bat """
-          copy "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\System.Xaml.dll" "%UIPATH_OUTPUT_PATH%" > nul
-          copy "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\PresentationFramework.dll" "%UIPATH_OUTPUT_PATH%" > nul
+          copy "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\System.Xaml.dll" "%UIPATH_OUTPUT_PATH%" || exit /b 0
+          copy "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\PresentationFramework.dll" "%UIPATH_OUTPUT_PATH%" || exit /b 0
         """
       }
     }
