@@ -2,56 +2,71 @@ pipeline {
   agent any
 
   environment {
-    PROJECT_FOLDER = 'Shared'
+    PROJECT_NAME = '20-06-2025'
     PROJECT_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025'
-    UIPCLI_PATH = 'C:\\Jenkins\\UiPathCI\\tools\\uipcli.exe'
-    TOOLS_PLATFORM_PATH = 'C:\\Jenkins\\UiPathCI\\tools\\Platform\\net8.0-windows'
-    OUTPUT_PATH = 'C:\\Jenkins\\UiPathCI\\output'
+    NUGET_OUTPUT_PATH = 'C:\\Jenkins\\UiPathCI\\Output'
+    UIPCLI_PATH = 'C:\\Users\\Saiteja.Indarapu\\Documents\\UiPath\\UIPathTestingFolder\\20-06-2025\\tools\\uipcli.exe'
 
-    ACCOUNT_FOR_APP = 'uipatntvskhu'
-    APPLICATION_ID = '1234abcd-5678-efgh-9012-ijkl3456mnop'
-    APPLICATION_SECRET = 'abcd1234secretvalue5678'
     ORCH_URL = 'https://cloud.uipath.com/uipatntvskhu/DefaultTenant'
-    ORCH_TENANT = 'DefaultTenant'
-    ORCH_FOLDER = 'Shared'
-    TRACE_LEVEL = 'Verbose'
+    TENANT = 'DefaultTenant'
+    ACCOUNT = 'uipatntvskhu'
+    APP_ID = '9765da03-dd43-4915-8847-8fe03d64bfa8'
+    APP_SECRET = '%Ab)AJCWq!f3%03v'
+    FOLDER_PATH = 'Shared'
+    TEST_SET = 'Testset'
   }
 
   stages {
-    stage('Confirm Jenkins User') {
-      steps {
-        powershell 'whoami'
-      }
-    }
-
-    stage('Check NuGet Path') {
-      steps {
-        powershell 'Write-Host \"USERPROFILE is $env:USERPROFILE\"; dir "$env:USERPROFILE\.nuget\packages"'
-      }
-    }
 
     stage('Pack') {
       steps {
-        powershell "\"${env:UIPCLI_PATH}\" package pack \"${env:PROJECT_PATH}\" -o \"${env:OUTPUT_PATH}\" --traceLevel ${env:TRACE_LEVEL} --libraryOrchestratorUrl ${env:ORCH_URL} --libraryOrchestratorTenant ${env:ORCH_TENANT} -A ${env:ACCOUNT_FOR_APP} -I ${env:APPLICATION_ID} -S ${env:APPLICATION_SECRET} --libraryOrchestratorApplicationScope \"OR.Folders OR.BackgroundTasks OR.TestSets OR.TestSetExecutions OR.TestSetSchedules OR.Settings.Read OR.Robots.Read OR.Machines.Read OR.Execution OR.Assets OR.Users.Read OR.Jobs OR.Monitoring\" --libraryOrchestratorFolder ${env:ORCH_FOLDER}"
+        echo "📦 Packing UiPath project..."
+        powershell """
+          & '${env:UIPCLI_PATH}' package pack '${env:PROJECT_PATH}' `
+            -o '${env:NUGET_OUTPUT_PATH}' `
+            --traceLevel Information
+        """
       }
     }
 
     stage('Deploy') {
       steps {
-        powershell "\"${env:UIPCLI_PATH}\" package push \"${env:OUTPUT_PATH}\\20-06-2025.1.0.0.nupkg\" --orchestratorUrl ${env:ORCH_URL} --orchestratorTenant ${env:ORCH_TENANT} -A ${env:ACCOUNT_FOR_APP} -I ${env:APPLICATION_ID} -S ${env:APPLICATION_SECRET} --orchestratorFolder ${env:ORCH_FOLDER}"
+        echo "🚀 Deploying to Orchestrator..."
+        powershell """
+          & '${env:UIPCLI_PATH}' package push '${env:NUGET_OUTPUT_PATH}\\${env:PROJECT_NAME}.1.0.0.nupkg' `
+            --orchestratorUrl '${env:ORCH_URL}' `
+            --orchestratorTenant '${env:TENANT}' `
+            -A '${env:ACCOUNT}' `
+            -I '${env:APP_ID}' `
+            -S '${env:APP_SECRET}' `
+            --libraryOrchestratorFolder '${env:FOLDER_PATH}'
+        """
       }
     }
 
     stage('Run Job') {
       steps {
-        powershell "\"${env:UIPCLI_PATH}\" run test --orchestratorUrl ${env:ORCH_URL} --orchestratorTenant ${env:ORCH_TENANT} -A ${env:ACCOUNT_FOR_APP} -I ${env:APPLICATION_ID} -S ${env:APPLICATION_SECRET} --orchestratorFolder ${env:ORCH_FOLDER} --testSetName \"YourTestSetName\""
+        echo "▶️ Running Test Set..."
+        powershell """
+          & '${env:UIPCLI_PATH}' testset run `
+            --orchestratorUrl '${env:ORCH_URL}' `
+            --orchestratorTenant '${env:TENANT}' `
+            -A '${env:ACCOUNT}' `
+            -I '${env:APP_ID}' `
+            -S '${env:APP_SECRET}' `
+            --testset '${env:TEST_SET}' `
+            --folder '${env:FOLDER_PATH}'
+        """
       }
     }
   }
 
   post {
     failure {
-      echo '❌ Build failed. Check logs for details.'
+      echo "❌ Build failed. Please check logs above."
+    }
+    success {
+      echo "✅ Build and test run completed successfully."
     }
   }
 }
