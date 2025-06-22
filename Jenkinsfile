@@ -12,10 +12,10 @@ pipeline {
   stages {
     stage('Copy Assemblies') {
       steps {
-        echo '🔄 Copying required .NET Framework DLLs...'
+        echo '🔄 Copying .NET 6.0.2 DLLs required for UiPath CLI...'
         bat """
-          copy "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\System.Xaml.dll" "%UIPATH_OUTPUT_PATH%" || exit /b 0
-          copy "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\PresentationFramework.dll" "%UIPATH_OUTPUT_PATH%" || exit /b 0
+          copy "C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\6.0.2\\System.Xaml.dll" "%UIPATH_OUTPUT_PATH%" || exit /b 0
+          copy "C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\6.0.2\\PresentationFramework.dll" "%UIPATH_OUTPUT_PATH%" || exit /b 0
         """
       }
     }
